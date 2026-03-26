@@ -269,22 +269,20 @@ export class OpticsEngine {
         let numCircles = 0;
         let numGroups = 0;
         state.elements.forEach(el => {
-            if (el.type === 'mirror' || el.type === 'absorber' || el.type === 'glass' || el.type === 'prism' || el.type === 'polygon' || el.type === 'fiber') {
-                let pts: any[] = el.points || [];
-                let isClosed = true;
-                if (el.type === 'prism') pts = getPrismGeometry(el);
-                if (el.type === 'polygon') pts = getPolygonGeometry(el);
-                if (el.type === 'fiber') pts = getFiberGeometry(el);
-                if (el.type === 'mirror' || el.type === 'absorber') {
-                    const rRad = (el.rotation || 0) * Math.PI / 180;
-                    const len = el.length || 150;
-                    pts = [
-                        vadd(vec(el.x, el.y), vrot(vec(-len/2, 0), rRad)),
-                        vadd(vec(el.x, el.y), vrot(vec(len/2, 0), rRad))
-                    ];
-                    isClosed = false;
-                }
-                numSegs += isClosed ? pts.length : pts.length - 1;
+            if (el.type === 'mirror' || el.type === 'absorber') {
+                numSegs += 1;
+                numGroups++;
+            } else if (el.type === 'prism') {
+                numSegs += getPrismGeometry(el).length;
+                numGroups++;
+            } else if (el.type === 'polygon') {
+                numSegs += getPolygonGeometry(el).length;
+                numGroups++;
+            } else if (el.type === 'fiber') {
+                numSegs += getFiberGeometry(el).length;
+                numGroups++;
+            } else if (el.type === 'glass') {
+                numSegs += el.points?.length || 0;
                 numGroups++;
             } else if (el.type === 'lens') {
                 numArcs += 2;
@@ -381,6 +379,29 @@ export class OpticsEngine {
                         segmentsData[baseIdx + 6] = el.absorption || 0;
                         segmentsData[baseIdx + 7] = el.scattering || 0;
                         
+                        segIdx++;
+                    }
+                } else if (el.type === 'glass') {
+                    const pts = el.points || [];
+                    for (let i = 0; i < pts.length; i++) {
+                        const p1 = pts[i];
+                        const p2 = pts[(i + 1) % pts.length];
+
+                        minX = Math.min(minX, p1.x, p2.x);
+                        minY = Math.min(minY, p1.y, p2.y);
+                        maxX = Math.max(maxX, p1.x, p2.x);
+                        maxY = Math.max(maxY, p1.y, p2.y);
+
+                        const baseIdx = segIdx * 8;
+                        segmentsData[baseIdx] = p1.x;
+                        segmentsData[baseIdx + 1] = p1.y;
+                        segmentsData[baseIdx + 2] = p2.x;
+                        segmentsData[baseIdx + 3] = p2.y;
+                        segmentsData[baseIdx + 4] = el.n || 1.5;
+                        segmentsData[baseIdx + 5] = 3;
+                        segmentsData[baseIdx + 6] = el.absorption || 0;
+                        segmentsData[baseIdx + 7] = el.scattering || 0;
+
                         segIdx++;
                     }
                 } else if (el.type === 'mirror' || el.type === 'absorber') {

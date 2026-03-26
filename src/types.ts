@@ -36,7 +36,7 @@ export interface Globals {
   dispersion: number;
   envN: number;
   intensity: number;
-  quality?: 'low' | 'medium' | 'high';
+  quality: 'low' | 'medium' | 'high';
   gridSize: number;
   snapping: boolean;
 }
