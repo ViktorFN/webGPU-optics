@@ -86,7 +86,8 @@ export class OpticsEngine {
             alphaMode: 'premultiplied',
         });
         
-        this.uniformBuffer = this.device.createBuffer({ size: 96, usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST });
+        // WGSL Uniforms struct is 112 bytes due to alignment/padding rules.
+        this.uniformBuffer = this.device.createBuffer({ size: 112, usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST });
         this.segmentsBuffer = this.device.createBuffer({ size: 4096 * 32, usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST });
         this.groupBBoxBuffer = this.device.createBuffer({ size: 128 * 32, usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST });
         this.arcsBuffer = this.device.createBuffer({ size: 50 * 48, usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST });
@@ -237,7 +238,8 @@ export class OpticsEngine {
             this.updateSceneData(state);
         }
         
-        const uniforms = new Float32Array(24);
+        // Keep this in sync with WGSL `Uniforms` (112 bytes / 28 floats).
+        const uniforms = new Float32Array(28);
         uniforms[0] = this.width;
         uniforms[1] = this.height;
         uniforms[2] = state.lightSource.x;
