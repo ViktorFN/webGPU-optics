@@ -1,6 +1,6 @@
 export type Vector2 = { x: number; y: number };
 
-export type ElementType = 'prism' | 'lens' | 'raindrop' | 'mirror' | 'polygon' | 'fiber';
+export type ElementType = 'prism' | 'lens' | 'raindrop' | 'mirror' | 'absorber' | 'glass' | 'polygon' | 'fiber';
 
 export interface OpticElement {
   id: string;
@@ -25,6 +25,7 @@ export interface OpticElement {
   
   vertices?: Vector2[];
   pts?: Vector2[];
+  points?: Vector2[];
 }
 
 export interface Globals {
@@ -35,6 +36,7 @@ export interface Globals {
   dispersion: number;
   envN: number;
   intensity: number;
+  quality?: 'low' | 'medium' | 'high';
   gridSize: number;
   snapping: boolean;
 }

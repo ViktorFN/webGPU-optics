@@ -270,12 +270,12 @@ export class OpticsEngine {
         let numGroups = 0;
         state.elements.forEach(el => {
             if (el.type === 'mirror' || el.type === 'absorber' || el.type === 'glass' || el.type === 'prism' || el.type === 'polygon' || el.type === 'fiber') {
-                let pts = el.points || [];
+                let pts: any[] = el.points || [];
                 let isClosed = true;
                 if (el.type === 'prism') pts = getPrismGeometry(el);
                 if (el.type === 'polygon') pts = getPolygonGeometry(el);
                 if (el.type === 'fiber') pts = getFiberGeometry(el);
-                if (el.type === 'mirror') {
+                if (el.type === 'mirror' || el.type === 'absorber') {
                     const rRad = (el.rotation || 0) * Math.PI / 180;
                     const len = el.length || 150;
                     pts = [
@@ -376,14 +376,14 @@ export class OpticsEngine {
                         segmentsData[baseIdx + 1] = p1.y;
                         segmentsData[baseIdx + 2] = p2.x;
                         segmentsData[baseIdx + 3] = p2.y;
-                        segmentsData[baseIdx + 4] = typeId;
-                        segmentsData[baseIdx + 5] = el.n || 1.5;
-                        segmentsData[baseIdx + 6] = groupIdx;
-                        segmentsData[baseIdx + 7] = 0; // pad
+                        segmentsData[baseIdx + 4] = typeId === 3 ? (el.n || 1.5) : state.globals.envN;
+                        segmentsData[baseIdx + 5] = typeId;
+                        segmentsData[baseIdx + 6] = el.absorption || 0;
+                        segmentsData[baseIdx + 7] = el.scattering || 0;
                         
                         segIdx++;
                     }
-                } else if (el.type === 'mirror') {
+                } else if (el.type === 'mirror' || el.type === 'absorber') {
                     const rRad = (el.rotation || 0) * Math.PI / 180;
                     const len = el.length || 150;
                     const p1 = vadd(vec(el.x, el.y), vrot(vec(-len/2, 0), rRad));
@@ -399,10 +399,10 @@ export class OpticsEngine {
                     segmentsData[baseIdx + 1] = p1.y;
                     segmentsData[baseIdx + 2] = p2.x;
                     segmentsData[baseIdx + 3] = p2.y;
-                    segmentsData[baseIdx + 4] = typeId;
-                    segmentsData[baseIdx + 5] = el.n || 1.5;
-                    segmentsData[baseIdx + 6] = groupIdx;
-                    segmentsData[baseIdx + 7] = 0; // pad
+                    segmentsData[baseIdx + 4] = typeId === 3 ? (el.n || 1.5) : state.globals.envN;
+                    segmentsData[baseIdx + 5] = typeId;
+                    segmentsData[baseIdx + 6] = el.absorption || 0;
+                    segmentsData[baseIdx + 7] = el.scattering || 0;
                     
                     segIdx++;
                 }
@@ -437,10 +437,10 @@ export class OpticsEngine {
                     arcsData[baseIdx + 5] = dir1.y;
                     arcsData[baseIdx + 6] = cosHA;
                     arcsData[baseIdx + 7] = 0; // pad
-                    arcsData[baseIdx + 8] = 3; // typeId (glass)
-                    arcsData[baseIdx + 9] = el.n || 1.5;
-                    arcsData[baseIdx + 10] = groupIdx;
-                    arcsData[baseIdx + 11] = 0; // pad
+                    arcsData[baseIdx + 8] = el.n || 1.5;
+                    arcsData[baseIdx + 9] = 3; // material type (glass)
+                    arcsData[baseIdx + 10] = el.absorption || 0;
+                    arcsData[baseIdx + 11] = el.scattering || 0;
                     arcIdx++;
                     
                     const c2 = vadd(vec(el.x, el.y), vrot(vec(dx, 0), angle));
@@ -454,10 +454,10 @@ export class OpticsEngine {
                     arcsData[baseIdx + 5] = dir2.y;
                     arcsData[baseIdx + 6] = cosHA;
                     arcsData[baseIdx + 7] = 0; // pad
-                    arcsData[baseIdx + 8] = 3; // typeId (glass)
-                    arcsData[baseIdx + 9] = el.n || 1.5;
-                    arcsData[baseIdx + 10] = groupIdx;
-                    arcsData[baseIdx + 11] = 0; // pad
+                    arcsData[baseIdx + 8] = el.n || 1.5;
+                    arcsData[baseIdx + 9] = 3; // material type (glass)
+                    arcsData[baseIdx + 10] = el.absorption || 0;
+                    arcsData[baseIdx + 11] = el.scattering || 0;
                     arcIdx++;
                     
                     groupBBoxData[groupIdx * 8] = el.x - R; // approximate
@@ -481,10 +481,10 @@ export class OpticsEngine {
                     arcsData[baseIdx + 5] = dir1.y;
                     arcsData[baseIdx + 6] = cosHA;
                     arcsData[baseIdx + 7] = 0; // pad
-                    arcsData[baseIdx + 8] = 3; // typeId (glass)
-                    arcsData[baseIdx + 9] = el.n || 1.5;
-                    arcsData[baseIdx + 10] = groupIdx;
-                    arcsData[baseIdx + 11] = 0; // pad
+                    arcsData[baseIdx + 8] = el.n || 1.5;
+                    arcsData[baseIdx + 9] = 3; // material type (glass)
+                    arcsData[baseIdx + 10] = el.absorption || 0;
+                    arcsData[baseIdx + 11] = el.scattering || 0;
                     arcIdx++;
                     
                     const c2 = vadd(vec(el.x, el.y), vrot(vec(-T/2 - dx, 0), angle));
@@ -498,10 +498,10 @@ export class OpticsEngine {
                     arcsData[baseIdx + 5] = dir2.y;
                     arcsData[baseIdx + 6] = cosHA;
                     arcsData[baseIdx + 7] = 0; // pad
-                    arcsData[baseIdx + 8] = 3; // typeId (glass)
-                    arcsData[baseIdx + 9] = el.n || 1.5;
-                    arcsData[baseIdx + 10] = groupIdx;
-                    arcsData[baseIdx + 11] = 0; // pad
+                    arcsData[baseIdx + 8] = el.n || 1.5;
+                    arcsData[baseIdx + 9] = 3; // material type (glass)
+                    arcsData[baseIdx + 10] = el.absorption || 0;
+                    arcsData[baseIdx + 11] = el.scattering || 0;
                     arcIdx++;
                     
                     const startSegIdx = segIdx;
@@ -513,15 +513,15 @@ export class OpticsEngine {
                     baseIdx = segIdx * 8;
                     segmentsData[baseIdx] = pTL.x; segmentsData[baseIdx + 1] = pTL.y;
                     segmentsData[baseIdx + 2] = pTR.x; segmentsData[baseIdx + 3] = pTR.y;
-                    segmentsData[baseIdx + 4] = 3; segmentsData[baseIdx + 5] = el.n || 1.5;
-                    segmentsData[baseIdx + 6] = groupIdx; segmentsData[baseIdx + 7] = 0;
+                    segmentsData[baseIdx + 4] = el.n || 1.5; segmentsData[baseIdx + 5] = 3;
+                    segmentsData[baseIdx + 6] = el.absorption || 0; segmentsData[baseIdx + 7] = el.scattering || 0;
                     segIdx++;
                     
                     baseIdx = segIdx * 8;
                     segmentsData[baseIdx] = pBR.x; segmentsData[baseIdx + 1] = pBR.y;
                     segmentsData[baseIdx + 2] = pBL.x; segmentsData[baseIdx + 3] = pBL.y;
-                    segmentsData[baseIdx + 4] = 3; segmentsData[baseIdx + 5] = el.n || 1.5;
-                    segmentsData[baseIdx + 6] = groupIdx; segmentsData[baseIdx + 7] = 0;
+                    segmentsData[baseIdx + 4] = el.n || 1.5; segmentsData[baseIdx + 5] = 3;
+                    segmentsData[baseIdx + 6] = el.absorption || 0; segmentsData[baseIdx + 7] = el.scattering || 0;
                     segIdx++;
                     
                     groupBBoxData[groupIdx * 8] = el.x - R; // approximate
@@ -540,10 +540,10 @@ export class OpticsEngine {
                 circlesData[baseIdx + 1] = el.y;
                 circlesData[baseIdx + 2] = el.radius || 100;
                 circlesData[baseIdx + 3] = 0; // pad
-                circlesData[baseIdx + 4] = 3; // typeId (glass)
-                circlesData[baseIdx + 5] = el.n || 1.333; // water
-                circlesData[baseIdx + 6] = groupIdx;
-                circlesData[baseIdx + 7] = 0; // pad
+                circlesData[baseIdx + 4] = el.n || 1.333; // water IOR
+                circlesData[baseIdx + 5] = 3; // material type (glass)
+                circlesData[baseIdx + 6] = el.absorption || 0;
+                circlesData[baseIdx + 7] = el.scattering || 0;
                 circIdx++;
                 
                 groupBBoxData[groupIdx * 8] = el.x - (el.radius || 100);
