@@ -260,10 +260,16 @@ fn vs_main(@builtin(instance_index) instance_index: u32, @builtin(vertex_index) 
         let hitPos = ro + rd * minT;
         if (currentAbs > 0.0) { intensity *= exp(-minT * currentAbs); }
 
-        if (hitProps.y == 2.0) {
+        if (hitProps.y == 1.0) {
+            // Mirror
             if (dot(rd, normal) > 0.0) { normal = -normal; }
             rd = reflect(rd, normal);
             intensity *= 0.98;
+        } else if (hitProps.y == 2.0) {
+            // Absorber
+            ro = hitPos;
+            intensity = 0.0;
+            break;
         } else {
             let entering = dot(rd, normal) < 0.0;
             if (!entering) { normal = -normal; }
@@ -302,7 +308,7 @@ fn vs_main(@builtin(instance_index) instance_index: u32, @builtin(vertex_index) 
     }
 
     let screenPos = ro * u.cameraZoom + u.cameraPos;
-    var clipPos = (screenPos / u.resolution) * 2.0 - 1.0;
+    var clipPos = (screenPos / u.res) * 2.0 - 1.0;
     clipPos.y = -clipPos.y;
 
     var out: VertexOutput;

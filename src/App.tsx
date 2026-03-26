@@ -15,6 +15,7 @@ const initialGlobals = {
     dispersion: 0.03,
     envN: 1.0,
     intensity: 1.0,
+    quality: 'medium' as const,
     gridSize: 20,
     snapping: false
 };
