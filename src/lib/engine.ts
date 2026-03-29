@@ -834,6 +834,25 @@ export class OpticsEngine {
         return false; 
     }
 
+    isNearSelectedPolygonEdge(x: number, y: number) {
+        const state = this.getState();
+        if (state.selectedElement === null) return false;
+
+        const selected = state.elements[state.selectedElement];
+        if (selected.type !== 'polygon') return false;
+
+        const edges = getPolygonGeometry(selected);
+        const lineHitRadius = 10 / state.camera.zoom;
+        const p = vec(x, y);
+
+        for (let i = 0; i < edges.length; i++) {
+            if (distToSegment(p, edges[i].p1, edges[i].p2) < lineHitRadius) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     snap(val: number, gridSize: number, snapping: boolean) {
         return snapping ? Math.round(val / gridSize) * gridSize : val;
     }
@@ -952,11 +971,15 @@ export class OpticsEngine {
                 playSound('click'); 
                 this.onStateChange(false);
             } else { 
-                state.selectedElement = null; 
-                this.draggingCamera = true;
-                this.cameraDragStart = { x: e.clientX, y: e.clientY };
-                this.initialCameraPos = { x: state.camera.x, y: state.camera.y };
-                this.onStateChange(false);
+                if (this.isNearSelectedPolygonEdge(worldPos.x, worldPos.y)) {
+                    this.onStateChange(false);
+                } else {
+                    state.selectedElement = null; 
+                    this.draggingCamera = true;
+                    this.cameraDragStart = { x: e.clientX, y: e.clientY };
+                    this.initialCameraPos = { x: state.camera.x, y: state.camera.y };
+                    this.onStateChange(false);
+                }
             } 
             this.requestRender(); 
         });
